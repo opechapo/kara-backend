@@ -5,7 +5,6 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-
 const path = require("path");
 const fs = require("fs");
 const fileUpload = require("express-fileupload");
@@ -15,6 +14,7 @@ const errorHandler = require("./middleware/errorHandler");
 const User = require("./models/User"); // Added to manage index and cleanup
 
 const PORT = process.env.PORT || 3000;
+const FRONTEND_URL = "https://kara-frontend.vercel.app/";
 
 // Create uploads directory if it doesn’t exist
 const uploadDir = path.join(__dirname, "Uploads");
@@ -114,7 +114,9 @@ mongoose.connection.once("open", async () => {
   }
 
   // Start the server
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  app.listen(PORT, () =>
+    console.log(`Server running on port ${PORT} ${FRONTEND_URL}`)
+  );
 });
 
 mongoose.connection.on("error", (err) => {
