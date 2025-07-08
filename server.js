@@ -26,7 +26,7 @@ if (!fs.existsSync(uploadDir)) {
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   "http://localhost:5173",
-  "https://kara-frontend.vercel.app/",
+  "https://kara-frontend.vercel.app",
 ];
 
 // Middleware
