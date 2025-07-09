@@ -203,7 +203,7 @@ const connectWallet = asyncHandler(async (req, res) => {
         signature,
         nonce: user.nonce,
         // domain: process.env.NODE_ENV === 'development' ? 'localhost:5173' : req.headers.host,
-        domain: process.env.SIWE_DOMAIN || "kara-frontend.vercel.app",
+        domain: process.env.SIWE_DOMAIN || "kara-frontend.vercel.app", //kara-frontend.vercel.app
       });
       console.log("SIWE message verified successfully");
     } catch (verifyError) {
