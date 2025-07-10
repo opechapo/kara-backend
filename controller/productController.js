@@ -63,7 +63,7 @@ const createProduct = asyncHandler(async (req, res) => {
     // await req.files.generalImage.mv(filePath);
     // generalImage = `/Uploads/${fileName}`;
 
-    const imageURL = await uploadImage(file);
+    const imageURL = await uploadImage(req);
     generalImage = imageURL;
   } else {
     res.status(400);
