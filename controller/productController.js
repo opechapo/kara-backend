@@ -4,7 +4,9 @@ const Store = require("../models/Store");
 const Collection = require("../models/Collection");
 const Escrow = require("../models/Escrow");
 const path = require("path");
-const { uploadImage } = require("../utils/imagekit");
+// const { uploadImage } = require("../utils/imagekit");
+const uploadImage = require("../utils/imagekit");
+
 const fs = require("fs").promises;
 
 const createProduct = asyncHandler(async (req, res) => {
