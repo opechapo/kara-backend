@@ -6,12 +6,10 @@ const imagekit = new Imagekit({
   urlEndpoint: "https://ik.imagekit.io/bigq627wt/",
 });
 
-const uploadImage = async (req) => {
-  const data = req.file;
-
+const uploadImage = async (file) => {
   const media = await imagekit.upload({
     folder: "images",
-    file: data.buffer,
+    file: file.buffer,
     fileName: `${new Date().toISOString()}.webp`,
     transformation: {
       pre: "lo-true,q-100,f-webp,w-350",
