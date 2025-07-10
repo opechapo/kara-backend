@@ -1,4 +1,4 @@
-import Imagekit from "imagekit";
+const Imagekit = require("imagekit");
 
 const imagekit = new Imagekit({
   publicKey: "public_V73kbGeJSn6+c95OemDP7rT0cdQ=",
@@ -21,4 +21,4 @@ const uploadImage = async (file) => {
   return media.url;
 };
 
-export default uploadImage;
+module.exports = uploadImage;

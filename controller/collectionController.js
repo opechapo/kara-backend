@@ -3,6 +3,7 @@ const Collection = require("../models/Collection");
 const Store = require("../models/Store");
 const path = require("path");
 const fs = require("fs").promises;
+const { default: uploadImage } = require("../utils/imagekit");
 
 // @desc    Get a single collection by ID
 // @route   GET /collections/:id
@@ -51,15 +52,17 @@ const createCollection = asyncHandler(async (req, res) => {
   const uploadPath = path.join(__dirname, "..", "Uploads");
 
   if (req.files && req.files.generalImage) {
-    const file = req.files.generalImage;
-    const fileName = `${Date.now()}-${file.name}`;
-    const filePath = path.join(uploadPath, fileName);
-    console.log("Saving file to:", filePath);
+    // const file = req.files.generalImage;
+    // const fileName = `${Date.now()}-${file.name}`;
+    // const filePath = path.join(uploadPath, fileName);
+    // console.log("Saving file to:", filePath);
+
+    const imageURL = await uploadImage(req.files.generalImage);
 
     try {
       await file.mv(filePath);
       console.log("File saved successfully");
-      collectionData.generalImage = `/uploads/${fileName}`;
+      collectionData.generalImage = imageURL;
     } catch (err) {
       console.error("File save error:", err);
       throw new Error(`Failed to save file: ${err.message}`);
