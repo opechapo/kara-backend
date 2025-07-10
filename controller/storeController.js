@@ -1,22 +1,25 @@
-const asyncHandler = require('express-async-handler');
-const Store = require('../models/Store');
-const path = require('path');
-const fs = require('fs').promises;
+const asyncHandler = require("express-async-handler");
+const Store = require("../models/Store");
+const path = require("path");
+const fs = require("fs").promises;
 
 // @desc    Get all stores for the authenticated user
 // @route   GET /stores
 // @access  Private
 const getStores = asyncHandler(async (req, res) => {
   const stores = await Store.find({ owner: req.user._id });
-  const normalizedStores = stores.map(store => ({
+  const normalizedStores = stores.map((store) => ({
     ...store.toObject(),
-    bannerImage: store.bannerImage ? store.bannerImage.replace('/uploads/', '') : null,
-    featuredImage: store.featuredImage ? store.featuredImage.replace('/uploads/', '') : null,
-    logo: store.logo ? store.logo.replace('/uploads/', '') : null,
+    bannerImage: store.bannerImage
+      ? store.bannerImage.replace("/uploads/", "")
+      : null,
+    featuredImage: store.featuredImage
+      ? store.featuredImage.replace("/uploads/", "")
+      : null,
+    logo: store.logo ? store.logo.replace("/uploads/", "") : null,
   }));
   res.json(normalizedStores);
 });
-
 
 // @desc    Get a single store by ID
 // @route   GET /stores/:id
@@ -25,19 +28,23 @@ const getStoreById = asyncHandler(async (req, res) => {
   const store = await Store.findById(req.params.id);
   if (!store) {
     res.status(404);
-    throw new Error('Store not found');
+    throw new Error("Store not found");
   }
   if (store.owner.toString() !== req.user._id.toString()) {
     res.status(403);
-    throw new Error('Not authorized to view this store');
+    throw new Error("Not authorized to view this store");
   }
   const normalizedStore = {
     ...store.toObject(),
-    bannerImage: store.bannerImage ? store.bannerImage.replace('/uploads/', '') : null,
-    featuredImage: store.featuredImage ? store.featuredImage.replace('/uploads/', '') : null,
-    logo: store.logo ? store.logo.replace('/uploads/', '') : null,
+    bannerImage: store.bannerImage
+      ? store.bannerImage.replace("/uploads/", "")
+      : null,
+    featuredImage: store.featuredImage
+      ? store.featuredImage.replace("/uploads/", "")
+      : null,
+    logo: store.logo ? store.logo.replace("/uploads/", "") : null,
   };
-  console.log('Store: Fetched store:', normalizedStore);
+  console.log("Store: Fetched store:", normalizedStore);
   res.json(normalizedStore);
 });
 
@@ -50,11 +57,11 @@ const createStore = asyncHandler(async (req, res) => {
 
   if (!name || !description) {
     res.status(400);
-    throw new Error('Name and description are required');
+    throw new Error("Name and description are required");
   }
 
   const storeData = { name, description, slogan, owner };
-  const uploadPath = path.join(__dirname, '..', 'uploads');
+  const uploadPath = path.join(__dirname, "..", "uploads");
 
   if (req.files) {
     if (req.files.bannerImage) {
@@ -92,32 +99,35 @@ const updateStore = asyncHandler(async (req, res) => {
   const store = await Store.findById(id);
   if (!store) {
     res.status(404);
-    throw new Error('Store not found');
+    throw new Error("Store not found");
   }
   if (store.owner.toString() !== req.user._id.toString()) {
     res.status(403);
-    throw new Error('Not authorized to update this store');
+    throw new Error("Not authorized to update this store");
   }
 
-  const uploadPath = path.join(__dirname, '..', 'uploads');
+  const uploadPath = path.join(__dirname, "..", "uploads");
   if (req.files) {
     if (req.files.bannerImage) {
-      const fileName = `${Date.now()}-${req.files.bannerImage.name}`;
-      const filePath = path.join(uploadPath, fileName);
-      await req.files.bannerImage.mv(filePath);
-      store.bannerImage = fileName; // Filename only
+      // const fileName = `${Date.now()}-${req.files.bannerImage.name}`;
+      // const filePath = path.join(uploadPath, fileName);
+      // await req.files.bannerImage.mv(filePath);
+      const imageURL = await uploadImage(req.files.bannerImage);
+      store.bannerImage = imageURL; // Filename only
     }
     if (req.files.featuredImage) {
-      const fileName = `${Date.now()}-${req.files.featuredImage.name}`;
-      const filePath = path.join(uploadPath, fileName);
-      await req.files.featuredImage.mv(filePath);
-      store.featuredImage = fileName; // Filename only
+      // const fileName = `${Date.now()}-${req.files.featuredImage.name}`;
+      // const filePath = path.join(uploadPath, fileName);
+      // await req.files.featuredImage.mv(filePath);
+      const imageURL = await uploadImage(req.files.featuredImage);
+      store.featuredImage = imageURL; // Filename only
     }
     if (req.files.logo) {
-      const fileName = `${Date.now()}-${req.files.logo.name}`;
-      const filePath = path.join(uploadPath, fileName);
-      await req.files.logo.mv(filePath);
-      store.logo = fileName; // Filename only
+      // const fileName = `${Date.now()}-${req.files.logo.name}`;
+      // const filePath = path.join(uploadPath, fileName);
+      // await req.files.logo.mv(filePath);
+      const imageURL = await uploadImage(req.files.logo);
+      store.logo = imageURL; // Filename only
     }
   }
 
@@ -137,17 +147,20 @@ const deleteStore = asyncHandler(async (req, res) => {
   const store = await Store.findById(id);
   if (!store) {
     res.status(404);
-    throw new Error('Store not found');
+    throw new Error("Store not found");
   }
   if (store.owner.toString() !== req.user._id.toString()) {
     res.status(403);
-    throw new Error('Not authorized to delete this store');
+    throw new Error("Not authorized to delete this store");
   }
 
-  const uploadPath = path.join(__dirname, '..', 'uploads');
-  for (const field of ['bannerImage', 'featuredImage', 'logo']) {
+  const uploadPath = path.join(__dirname, "..", "uploads");
+  for (const field of ["bannerImage", "featuredImage", "logo"]) {
     if (store[field]) {
-      const filePath = path.join(uploadPath, store[field].replace('/uploads/', ''));
+      const filePath = path.join(
+        uploadPath,
+        store[field].replace("/uploads/", "")
+      );
       try {
         await fs.unlink(filePath);
         console.log(`Deleted ${field} file:`, filePath);
@@ -168,4 +181,3 @@ module.exports = {
   updateStore,
   deleteStore,
 };
-

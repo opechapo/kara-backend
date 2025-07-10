@@ -9,8 +9,8 @@ const fs = require("fs").promises;
 // @access  Private
 const getCollectionById = asyncHandler(async (req, res) => {
   const collection = await Collection.findById(req.params.id)
-    .populate('store', 'name')
-    .populate('owner', 'walletAddress _id');
+    .populate("store", "name")
+    .populate("owner", "walletAddress _id");
   if (!collection) {
     res.status(404);
     throw new Error("Collection not found");
@@ -21,9 +21,11 @@ const getCollectionById = asyncHandler(async (req, res) => {
   }
   const normalizedCollection = {
     ...collection.toObject(),
-    generalImage: collection.generalImage ? collection.generalImage.replace('/uploads/', '') : null,
+    generalImage: collection.generalImage
+      ? collection.generalImage.replace("/uploads/", "")
+      : null,
   };
-  console.log('Collection: Fetched collection:', normalizedCollection);
+  console.log("Collection: Fetched collection:", normalizedCollection);
   res.json({ success: true, data: normalizedCollection });
 });
 
@@ -67,7 +69,9 @@ const createCollection = asyncHandler(async (req, res) => {
   const collection = await Collection.create(collectionData);
   const normalizedCollection = {
     ...collection.toObject(),
-    generalImage: collection.generalImage ? collection.generalImage.replace('/uploads/', '') : null,
+    generalImage: collection.generalImage
+      ? collection.generalImage.replace("/uploads/", "")
+      : null,
   };
   res.status(201).json({ success: true, data: normalizedCollection });
 });
@@ -87,7 +91,10 @@ const updateCollection = asyncHandler(async (req, res) => {
 
   if (store) {
     const storeExists = await Store.findById(store);
-    if (!storeExists || storeExists.owner.toString() !== req.user._id.toString()) {
+    if (
+      !storeExists ||
+      storeExists.owner.toString() !== req.user._id.toString()
+    ) {
       res.status(403);
       throw new Error("Store not found or not authorized");
     }
@@ -109,7 +116,10 @@ const updateCollection = asyncHandler(async (req, res) => {
       await file.mv(filePath);
       console.log("File saved successfully");
       if (collection.generalImage) {
-        const oldFilePath = path.join(uploadPath, collection.generalImage.replace('/uploads/', ''));
+        const oldFilePath = path.join(
+          uploadPath,
+          collection.generalImage.replace("/uploads/", "")
+        );
         try {
           await fs.unlink(oldFilePath);
           console.log("Deleted old file:", oldFilePath);
@@ -127,7 +137,9 @@ const updateCollection = asyncHandler(async (req, res) => {
   const updatedCollection = await collection.save();
   const normalizedCollection = {
     ...updatedCollection.toObject(),
-    generalImage: updatedCollection.generalImage ? updatedCollection.generalImage.replace('/uploads/', '') : null,
+    generalImage: updatedCollection.generalImage
+      ? updatedCollection.generalImage.replace("/uploads/", "")
+      : null,
   };
   res.json({ success: true, data: normalizedCollection });
 });
@@ -144,7 +156,12 @@ const deleteCollection = asyncHandler(async (req, res) => {
   }
 
   if (collection.generalImage) {
-    const filePath = path.join(__dirname, "..", "Uploads", collection.generalImage.replace('/uploads/', ''));
+    const filePath = path.join(
+      __dirname,
+      "..",
+      "Uploads",
+      collection.generalImage.replace("/uploads/", "")
+    );
     try {
       await fs.unlink(filePath);
       console.log("Deleted file:", filePath);
@@ -154,7 +171,14 @@ const deleteCollection = asyncHandler(async (req, res) => {
   }
 
   await Collection.deleteOne({ _id: id });
-  res.status(200).json({ success: true, message: "Collection deleted successfully" });
+  res
+    .status(200)
+    .json({ success: true, message: "Collection deleted successfully" });
 });
 
-module.exports = { getCollectionById, createCollection, updateCollection, deleteCollection };
+module.exports = {
+  getCollectionById,
+  createCollection,
+  updateCollection,
+  deleteCollection,
+};
