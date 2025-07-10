@@ -3,7 +3,7 @@ const Collection = require("../models/Collection");
 const Store = require("../models/Store");
 const path = require("path");
 const fs = require("fs").promises;
-const { default: uploadImage } = require("../utils/imagekit");
+const uploadImage = require("../utils/imagekit");
 
 // @desc    Get a single collection by ID
 // @route   GET /collections/:id
