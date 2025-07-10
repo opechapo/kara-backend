@@ -7,6 +7,8 @@ const imagekit = new Imagekit({
 });
 
 async function uploadImage(file) {
+  console.log(file);
+
   const media = await imagekit.upload({
     folder: "images",
     file: file.data,

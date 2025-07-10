@@ -2,8 +2,8 @@ const asyncHandler = require("express-async-handler");
 const Collection = require("../models/Collection");
 const Store = require("../models/Store");
 const path = require("path");
-const fs = require("fs").promises;
 const uploadImage = require("../utils/imagekit");
+const fs = require("fs").promises;
 
 // @desc    Get a single collection by ID
 // @route   GET /collections/:id
