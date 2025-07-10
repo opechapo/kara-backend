@@ -27,7 +27,7 @@ contract Escrow {
         require(!isReleased && !isRefunded, "Escrow already settled");
         require(address(this).balance >= amount, "Insufficient contract balance");
         isReleased = true;
-        uint256 transferAmount = (amount * 95) / 10000;
+        uint256 transferAmount = (amount * 90) / 10000;
         uint256 commissionAmount = (amount * 5) / 10000;
         amount = 0;
         payable(seller).transfer(transferAmount);

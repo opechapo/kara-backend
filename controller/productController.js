@@ -1,11 +1,11 @@
-const asyncHandler = require('express-async-handler');
-const Product = require('../models/Product');
-const Store = require('../models/Store');
-const Collection = require('../models/Collection');
-const Escrow = require('../models/Escrow');
-const path = require('path');
-const fs = require('fs').promises;
-
+const asyncHandler = require("express-async-handler");
+const Product = require("../models/Product");
+const Store = require("../models/Store");
+const Collection = require("../models/Collection");
+const Escrow = require("../models/Escrow");
+const path = require("path");
+const { default: uploadImage } = require("../utils/imagekit");
+const fs = require("fs").promises;
 
 const createProduct = asyncHandler(async (req, res) => {
   const {
@@ -23,33 +23,51 @@ const createProduct = asyncHandler(async (req, res) => {
   } = req.body;
   const owner = req.user._id;
 
-  if (!name || !shortDescription || !price || !amount || !category || !paymentToken || !storeId || !collection) {
+  if (
+    !name ||
+    !shortDescription ||
+    !price ||
+    !amount ||
+    !category ||
+    !paymentToken ||
+    !storeId ||
+    !collection
+  ) {
     res.status(400);
-    throw new Error('All required fields must be provided');
+    throw new Error("All required fields must be provided");
   }
 
   const store = await Store.findById(storeId);
   if (!store || store.owner.toString() !== owner.toString()) {
     res.status(403);
-    throw new Error('Store not found or not authorized');
+    throw new Error("Store not found or not authorized");
   }
 
   const collectionExists = await Collection.findById(collection);
-  if (!collectionExists || collectionExists.owner.toString() !== owner.toString() || collectionExists.store.toString() !== storeId) {
+  if (
+    !collectionExists ||
+    collectionExists.owner.toString() !== owner.toString() ||
+    collectionExists.store.toString() !== storeId
+  ) {
     res.status(403);
-    throw new Error('Collection not found, not authorized, or not tied to the store');
+    throw new Error(
+      "Collection not found, not authorized, or not tied to the store"
+    );
   }
 
-  const uploadPath = path.join(__dirname, '..', 'Uploads');
-  let generalImage = '';
+  const uploadPath = path.join(__dirname, "..", "Uploads");
+  let generalImage = "";
   if (req.files && req.files.generalImage) {
-    const fileName = `${Date.now()}-${req.files.generalImage.name}`;
-    const filePath = path.join(uploadPath, fileName);
-    await req.files.generalImage.mv(filePath);
-    generalImage = `/Uploads/${fileName}`;
+    // const fileName = `${Date.now()}-${req.files.generalImage.name}`;
+    // const filePath = path.join(uploadPath, fileName);
+    // await req.files.generalImage.mv(filePath);
+    // generalImage = `/Uploads/${fileName}`;
+
+    const imageURL = await uploadImage(file);
+    generalImage = imageURL;
   } else {
     res.status(400);
-    throw new Error('General image is required');
+    throw new Error("General image is required");
   }
 
   const product = await Product.create({
@@ -63,22 +81,22 @@ const createProduct = asyncHandler(async (req, res) => {
     storeId,
     store: storeId,
     collection,
-    escrowSystem: escrowSystem || 'Deposit',
-    vendorDeposit: escrowSystem === 'Deposit' ? vendorDeposit : undefined,
-    customerDeposit: escrowSystem === 'Deposit' ? customerDeposit : undefined,
+    escrowSystem: escrowSystem || "Deposit",
+    vendorDeposit: escrowSystem === "Deposit" ? vendorDeposit : undefined,
+    customerDeposit: escrowSystem === "Deposit" ? customerDeposit : undefined,
     generalImage,
   });
 
   const populatedProduct = await Product.findById(product._id)
-    .populate('store', 'name description')
-    .populate('collection', 'name');
+    .populate("store", "name description")
+    .populate("collection", "name");
   res.status(201).json({ success: true, data: populatedProduct });
 });
 
 const getProducts = asyncHandler(async (req, res) => {
   const products = await Product.find({ owner: req.user._id, deletedAt: null })
-    .populate('store', 'name description')
-    .populate('collection', 'name');
+    .populate("store", "name description")
+    .populate("collection", "name");
   res.json({ success: true, data: products });
 });
 
@@ -86,47 +104,50 @@ const getProductsByStore = asyncHandler(async (req, res) => {
   const { storeId } = req.query;
   if (!storeId) {
     res.status(400);
-    throw new Error('Store ID is required');
+    throw new Error("Store ID is required");
   }
   const store = await Store.findById(storeId);
   if (!store) {
     res.status(404);
-    throw new Error('Store not found');
+    throw new Error("Store not found");
   }
   const products = await Product.find({ store: storeId, deletedAt: null })
-    .populate('store', 'name description')
-    .populate('collection', 'name');
+    .populate("store", "name description")
+    .populate("collection", "name");
   res.json({ success: true, data: products });
 });
 
 const getUserProducts = asyncHandler(async (req, res) => {
   if (!req.user || !req.user._id) {
     res.status(401);
-    throw new Error('User not authenticated');
+    throw new Error("User not authenticated");
   }
   const products = await Product.find({ owner: req.user._id, deletedAt: null })
-    .populate('store', 'name description')
-    .populate('collection', 'name');
+    .populate("store", "name description")
+    .populate("collection", "name");
   res.json({ success: true, data: products });
 });
 
 const getProductById = asyncHandler(async (req, res) => {
   const product = await Product.findOne({ _id: req.params.id, deletedAt: null })
-    .populate('store', 'name description')
-    .populate('collection', 'name')
-    .populate('owner', 'walletAddress');
+    .populate("store", "name description")
+    .populate("collection", "name")
+    .populate("owner", "walletAddress");
   if (!product) {
     res.status(404);
-    throw new Error('Product not found');
+    throw new Error("Product not found");
   }
   res.json({ success: true, data: product });
 });
 
 const updateProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findOne({ _id: req.params.id, deletedAt: null });
+  const product = await Product.findOne({
+    _id: req.params.id,
+    deletedAt: null,
+  });
   if (!product || product.owner.toString() !== req.user._id.toString()) {
     res.status(403);
-    throw new Error('Product not found or not authorized');
+    throw new Error("Product not found or not authorized");
   }
 
   const {
@@ -143,15 +164,21 @@ const updateProduct = asyncHandler(async (req, res) => {
     customerDeposit,
   } = req.body;
 
-  const uploadPath = path.join(__dirname, '..', 'Uploads');
+  const uploadPath = path.join(__dirname, "..", "Uploads");
   if (req.files && req.files.generalImage) {
     if (product.generalImage) {
-      const oldFilePath = path.join(uploadPath, product.generalImage.replace('/Uploads/', ''));
+      const oldFilePath = path.join(
+        uploadPath,
+        product.generalImage.replace("/Uploads/", "")
+      );
       try {
         await fs.unlink(oldFilePath);
-        console.log('Deleted old product image:', oldFilePath);
+        console.log("Deleted old product image:", oldFilePath);
       } catch (err) {
-        console.error('Error deleting old product image (ignored):', err.message);
+        console.error(
+          "Error deleting old product image (ignored):",
+          err.message
+        );
       }
     }
     const fileName = `${Date.now()}-${req.files.generalImage.name}`;
@@ -164,7 +191,7 @@ const updateProduct = asyncHandler(async (req, res) => {
     const store = await Store.findById(storeId);
     if (!store || store.owner.toString() !== req.user._id.toString()) {
       res.status(403);
-      throw new Error('Store not found or not authorized');
+      throw new Error("Store not found or not authorized");
     }
     product.storeId = storeId;
     product.store = storeId;
@@ -172,9 +199,15 @@ const updateProduct = asyncHandler(async (req, res) => {
 
   if (collection) {
     const collectionExists = await Collection.findById(collection);
-    if (!collectionExists || collectionExists.owner.toString() !== req.user._id.toString() || collectionExists.store.toString() !== product.storeId.toString()) {
+    if (
+      !collectionExists ||
+      collectionExists.owner.toString() !== req.user._id.toString() ||
+      collectionExists.store.toString() !== product.storeId.toString()
+    ) {
       res.status(403);
-      throw new Error('Collection not found, not authorized, or not tied to the store');
+      throw new Error(
+        "Collection not found, not authorized, or not tied to the store"
+      );
     }
     product.collection = collection;
   }
@@ -186,31 +219,43 @@ const updateProduct = asyncHandler(async (req, res) => {
   product.category = category || product.category;
   product.paymentToken = paymentToken || product.paymentToken;
   product.escrowSystem = escrowSystem || product.escrowSystem;
-  product.vendorDeposit = escrowSystem === 'Deposit' ? vendorDeposit || product.vendorDeposit : undefined;
-  product.customerDeposit = escrowSystem === 'Deposit' ? customerDeposit || product.customerDeposit : undefined;
+  product.vendorDeposit =
+    escrowSystem === "Deposit"
+      ? vendorDeposit || product.vendorDeposit
+      : undefined;
+  product.customerDeposit =
+    escrowSystem === "Deposit"
+      ? customerDeposit || product.customerDeposit
+      : undefined;
 
   const updatedProduct = await product.save();
   const populatedProduct = await Product.findById(updatedProduct._id)
-    .populate('store', 'name description')
-    .populate('collection', 'name');
+    .populate("store", "name description")
+    .populate("collection", "name");
   res.json({ success: true, data: populatedProduct });
 });
 
 const deleteProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findOne({ _id: req.params.id, deletedAt: null });
+  const product = await Product.findOne({
+    _id: req.params.id,
+    deletedAt: null,
+  });
   if (!product || product.owner.toString() !== req.user._id.toString()) {
     res.status(403);
-    throw new Error('Product not found or not authorized');
+    throw new Error("Product not found or not authorized");
   }
 
-  const uploadPath = path.join(__dirname, '..', 'Uploads');
+  const uploadPath = path.join(__dirname, "..", "Uploads");
   if (product.generalImage) {
-    const filePath = path.join(uploadPath, product.generalImage.replace('/Uploads/', ''));
+    const filePath = path.join(
+      uploadPath,
+      product.generalImage.replace("/Uploads/", "")
+    );
     try {
       await fs.unlink(filePath);
-      console.log('Deleted product image:', filePath);
+      console.log("Deleted product image:", filePath);
     } catch (err) {
-      console.error('Error deleting product image (ignored):', err.message);
+      console.error("Error deleting product image (ignored):", err.message);
     }
   }
 
@@ -223,9 +268,14 @@ const deleteProduct = asyncHandler(async (req, res) => {
     { productId: product._id, deletedAt: null },
     { $set: { deletedAt: new Date() } }
   );
-  console.log(`Soft deleted ${escrowUpdate.modifiedCount} escrow records for product ${product._id}`);
+  console.log(
+    `Soft deleted ${escrowUpdate.modifiedCount} escrow records for product ${product._id}`
+  );
 
-  res.json({ success: true, data: { message: 'Product and associated escrow records soft deleted' } });
+  res.json({
+    success: true,
+    data: { message: "Product and associated escrow records soft deleted" },
+  });
 });
 
 module.exports = {
