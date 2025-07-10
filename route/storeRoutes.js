@@ -5,6 +5,7 @@ const Store = require("../models/Store");
 const path = require("path");
 const authMiddleware = require("../middleware/auth");
 const jwt = require("jsonwebtoken");
+const uploadImage = require("../utils/imagekit");
 
 // Public routes
 router.get(
