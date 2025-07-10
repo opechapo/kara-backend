@@ -65,22 +65,25 @@ const createStore = asyncHandler(async (req, res) => {
 
   if (req.files) {
     if (req.files.bannerImage) {
-      const fileName = `${Date.now()}-${req.files.bannerImage.name}`;
-      const filePath = path.join(uploadPath, fileName);
-      await req.files.bannerImage.mv(filePath);
-      storeData.bannerImage = fileName; // Filename only
+      // const fileName = `${Date.now()}-${req.files.bannerImage.name}`;
+      // const filePath = path.join(uploadPath, fileName);
+      // await req.files.bannerImage.mv(filePath);
+      const imageURL = await uploadImage(req.files.bannerImage);
+      store.bannerImage = imageURL; // Filename only
     }
     if (req.files.featuredImage) {
-      const fileName = `${Date.now()}-${req.files.featuredImage.name}`;
-      const filePath = path.join(uploadPath, fileName);
-      await req.files.featuredImage.mv(filePath);
-      storeData.featuredImage = fileName; // Filename only
+      // const fileName = `${Date.now()}-${req.files.featuredImage.name}`;
+      // const filePath = path.join(uploadPath, fileName);
+      // await req.files.featuredImage.mv(filePath);
+      const imageURL = await uploadImage(req.files.featuredImage);
+      store.featuredImage = imageURL; // Filename only
     }
     if (req.files.logo) {
-      const fileName = `${Date.now()}-${req.files.logo.name}`;
-      const filePath = path.join(uploadPath, fileName);
-      await req.files.logo.mv(filePath);
-      storeData.logo = fileName; // Filename only
+      // const fileName = `${Date.now()}-${req.files.logo.name}`;
+      // const filePath = path.join(uploadPath, fileName);
+      // await req.files.logo.mv(filePath);
+      const imageURL = await uploadImage(req.files.logo);
+      store.logo = imageURL; // Filename only
     }
   }
 
