@@ -60,7 +60,7 @@ const createCollection = asyncHandler(async (req, res) => {
     const imageURL = await uploadImage(req.files.generalImage);
 
     try {
-      await file.mv(filePath);
+      //await file.mv(filePath);
       console.log("File saved successfully");
       collectionData.generalImage = imageURL;
     } catch (err) {
