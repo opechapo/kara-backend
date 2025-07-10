@@ -9,7 +9,7 @@ const imagekit = new Imagekit({
 const uploadImage = async (file) => {
   const media = await imagekit.upload({
     folder: "images",
-    file: file,
+    file: file.buffer,
     fileName: `${new Date().toISOString()}.webp`,
     transformation: {
       pre: "lo-true,q-100,f-webp,w-350",
