@@ -6,9 +6,7 @@ const imagekit = new Imagekit({
   urlEndpoint: "https://ik.imagekit.io/bigq627wt/",
 });
 
-const uploadImage = async (file) => {
-  console.log(file);
-
+async function uploadImage(file) {
   const media = await imagekit.upload({
     folder: "images",
     file: file.data,
@@ -19,6 +17,6 @@ const uploadImage = async (file) => {
   });
 
   return media.url;
-};
+}
 
 module.exports = uploadImage;
