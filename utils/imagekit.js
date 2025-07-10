@@ -11,7 +11,7 @@ const uploadImage = async (file) => {
 
   const media = await imagekit.upload({
     folder: "images",
-    file: file.buffer,
+    file: file.data,
     fileName: `${new Date().toISOString()}.webp`,
     transformation: {
       pre: "lo-true,q-100,f-webp,w-350",
